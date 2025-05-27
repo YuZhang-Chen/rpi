@@ -1,37 +1,44 @@
 import RPi.GPIO as GPIO
 import time
 
+pin_servo = 40
+
 GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(False)
+GPIO.setup(pin_servo, GPIO.OUT)
+pwm_servo = GPIO.PWM(pin_servo, 50)  # 50Hz frequency
+pwm_servo.start(0)
 
-SERVO_PIN = 40
-GPIO.setup(SERVO_PIN, GPIO.OUT)
 
-pwm = GPIO.PWM(SERVO_PIN, 50)
-pwm.start(0)
-
-def set_angle(angle):
-    duty = 2 + (angle / 18)
-    pwm.ChangeDutyCycle(duty)
-    time.sleep(0.5)
-    pwm.ChangeDutyCycle(0)  # 關閉訊號避免抖動
-
-try:
-    while True:
-        print("➡️ 轉到 0 度")
-        set_angle(0)
-        time.sleep(1)
-
-        print("➡️ 轉到 90 度")
-        set_angle(90)
-        time.sleep(1)
-
-        print("➡️ 轉到 180 度")
-        set_angle(180)
-        time.sleep(1)
-
-except KeyboardInterrupt:
-    print("🛑 測試結束")
-finally:
-    pwm.stop()
+def destroy():
+    pwm_servo.stop()
     GPIO.cleanup()
+
+
+# 輸入0 ～ 180度即可
+# 別超過180度
+def setDirection(angle):
+    # 0 = 停止轉動
+    # 2 = 0度
+    # 7 = 90度
+    # 12 = 180度
+    duty = 2 + (angle / 18)
+    pwm_servo.ChangeDutyCycle(duty)
+    # 消除抖動
+    time.sleep(0.3)
+    pwm_servo.ChangeDutyCycle(0)
+    print("角度=", angle, "-> duty=", duty)
+
+
+def run():
+    # for angle in range(0, 181, 20):
+        setDirection(0)
+        # time.sleep(0.5)
+
+
+if __name__ == "__main__":
+    try:
+        run()
+    finally:
+        destroy()
+
+
